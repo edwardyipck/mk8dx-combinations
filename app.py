@@ -1,8 +1,5 @@
 import pandas as pd
-import seaborn as sns
-sns.set()
-comb = pd.read_csv("assets/FullCombinations.csv")
-
+import re
 import dash
 import dash_table
 import plotly.express as px
@@ -10,10 +7,59 @@ import dash_core_components as dcc
 import dash_html_components as html
 from dash.dependencies import Input, Output
 import dash_bootstrap_components as dbc
+import itertools as it
 
+drivers = pd.read_csv("assets/data/drivers.csv")
+bodies = pd.read_csv("assets/data/bodies.csv")
+tires = pd.read_csv("assets/data/tires.csv")
+gliders = pd.read_csv("assets/data/gliders.csv")
+
+stats = {"WG": "Weight",
+         "AC": "Acceleration",
+         "ON": "On-Road traction",
+         "OF": "(Off-Road) Traction",
+         "MT": "Mini-Turbo",
+         "SL": "Ground Speed",
+         "SW": "Water Speed",
+         "SA": "Anti-Gravity Speed",
+         "SG": "Air Speed",
+         "TL": "Ground Handling",
+         "TW": "Water Handling",
+         "TA": "Anti-Gravity Handling",
+         "TG": "Air Handling"}
+
+drivers = drivers.rename(columns=stats)
+bodies = bodies.rename(columns=stats)
+gliders = gliders.rename(columns=stats)
+tires = tires.rename(columns=stats)
+
+drivers["Driver"] = drivers["Driver"].apply(lambda x: re.findall('^.*\S', x)[0])
+bodies["Body"] = bodies["Body"].apply(lambda x: re.findall('^.*\S', x)[0])
+tires["Tire"] = tires["Tire"].apply(lambda x: re.findall('^.*\S', x)[0])
+gliders["Glider"] = gliders["Glider"].apply(lambda x: re.findall('^.*\S', x)[0])
+tires["Tire"] = tires["Tire"].apply(lambda x : str(x) + " Tires" if "Tires" not in x else x)
 
 cols = ['Driver', 'Body', 'Tire', 'Glider', 'WG', 'AC', 'ON', 'OF', 'MT', 'SL', 'SW', 'SA', 'SG', 'TL', 'TW', 'TA', 'TG', 'Total']
 app = dash.Dash(__name__,external_stylesheets=[dbc.themes.BOOTSTRAP])
+
+namelist = [drivers.Driver.tolist(),bodies.Body.tolist(),tires.Tire.tolist(),gliders.Glider.tolist()]
+allnames = list(it.product(*namelist))
+
+statlist = [drivers.drop("Driver",axis=1).values.tolist(),
+            bodies.drop("Body",axis=1).values.tolist(),
+            tires.drop("Tire",axis=1).values.tolist(),
+            gliders.drop("Glider",axis=1).values.tolist()]
+allstats = list(it.product(*statlist))
+allstats = [[sum(x) for x in zip(i[0],i[1],i[2],i[3])] for i in allstats]
+
+nametable = pd.DataFrame(allnames, columns = ["Driver", "Body", "Tire","Glider"])
+stattable = pd.DataFrame(allstats, columns = ['Weight', 'Acceleration', 'On-Road traction', '(Off-Road) Traction',
+                                              'Mini-Turbo', 'Ground Speed', 'Water Speed', 'Anti-Gravity Speed',
+                                              'Air Speed', 'Ground Handling', 'Water Handling',
+                                              'Anti-Gravity Handling', 'Air Handling'])
+comb = nametable.join(stattable)
+comb["Total"] = comb.sum(axis=1)
+
 
 fig = px.scatter(comb.copy()[["Acceleration","Ground Speed"]].drop_duplicates(), x="Acceleration", y="Ground Speed",
                      hover_data=["Acceleration", "Ground Speed"],
