@@ -41,6 +41,7 @@ tires["Tire"] = tires["Tire"].apply(lambda x : str(x) + " Tires" if "Tires" not 
 
 cols = ['Driver', 'Body', 'Tire', 'Glider', 'WG', 'AC', 'ON', 'OF', 'MT', 'SL', 'SW', 'SA', 'SG', 'TL', 'TW', 'TA', 'TG', 'Total']
 app = dash.Dash(__name__,external_stylesheets=[dbc.themes.BOOTSTRAP])
+server = app.server
 
 namelist = [drivers.Driver.tolist(),bodies.Body.tolist(),tires.Tire.tolist(),gliders.Glider.tolist()]
 allnames = list(it.product(*namelist))
