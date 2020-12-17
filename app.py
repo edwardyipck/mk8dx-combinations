@@ -149,8 +149,8 @@ app.layout = html.Div([
                     dcc.Graph(id='graph', figure=fig,style={'width': '70vh', 'height': '70vh'})),
                     width={'size': "auto","offset": -1}),
     
-            dbc.Col(html.Div(
-                    dbc.Spinner(dash_table.DataTable(id="table",
+            dbc.Col(dbc.Spinner(html.Div(
+                    dash_table.DataTable(id="table",
                     columns=[{"id": i, "name": j} for i,j  in zip(comb.reset_index().columns[1:],cols)],
                     tooltip_header={i: i for i in comb.reset_index().columns[1:]},
                     data=[], sort_action='custom',
@@ -171,11 +171,11 @@ app.layout = html.Div([
         html.Pre(id='click-data'),
     ]),
     
-    dbc.Row([dbc.Col([
+    dbc.Row([dbc.Col(dbc.Spinner([
     html.Img(id = 'image_1', width=128, height=128,src=app.get_asset_url("blank.png"),style={'margin-left': 65}),
     html.Img(id = 'image_2', width=120, height=77,src=app.get_asset_url("blank.png")),
     html.Img(id = 'image_3', width=120, height=77,src=app.get_asset_url("blank.png")),
-    html.Img(id = 'image_4', width=120, height=77,src=app.get_asset_url("blank.png"))],width={'size': 'auto'}),
+    html.Img(id = 'image_4', width=120, height=77,src=app.get_asset_url("blank.png"))]),width={'size': 5}),
             dbc.Col(html.Div(dcc.Graph(id='graph2', figure={})),width={'size': "auto"},align="start")]
     )
     
@@ -263,7 +263,7 @@ def select(data,select):
         fig.update_layout(hoverlabel=dict(bgcolor="#181A1B", font_color='white'))
         fig.layout.xaxis.fixedrange = True
         fig.layout.yaxis.fixedrange = True
-        
+
         return (app.get_asset_url('driver/'+driver+'.png'), app.get_asset_url('body/'+body+'.png'), app.get_asset_url('tires/'+tires+'.png'), app.get_asset_url('glider/'+glider+'.png'),fig)
     else:
         return (app.get_asset_url("blank.png"),app.get_asset_url("blank.png"),app.get_asset_url("blank.png"),app.get_asset_url("blank.png"),{})     
