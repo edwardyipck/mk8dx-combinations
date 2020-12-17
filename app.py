@@ -1,13 +1,16 @@
 import pandas as pd
 import re
+import itertools as it
+
 import dash
 import dash_table
 import plotly.express as px
 import dash_core_components as dcc
 import dash_html_components as html
-from dash.dependencies import Input, Output
+from dash.dependencies import Input, Output, State
 import dash_bootstrap_components as dbc
-import itertools as it
+
+# Creating the dataframe
 
 drivers = pd.read_csv("assets/data/drivers.csv")
 bodies = pd.read_csv("assets/data/bodies.csv")
@@ -39,20 +42,14 @@ tires["Tire"] = tires["Tire"].apply(lambda x: re.findall('^.*\S', x)[0])
 gliders["Glider"] = gliders["Glider"].apply(lambda x: re.findall('^.*\S', x)[0])
 tires["Tire"] = tires["Tire"].apply(lambda x : str(x) + " Tires" if "Tires" not in x else x)
 
-cols = ['Driver', 'Body', 'Tire', 'Glider', 'WG', 'AC', 'ON', 'OF', 'MT', 'SL', 'SW', 'SA', 'SG', 'TL', 'TW', 'TA', 'TG', 'Total']
-app = dash.Dash(__name__,external_stylesheets=[dbc.themes.BOOTSTRAP])
-server = app.server
-
 namelist = [drivers.Driver.tolist(),bodies.Body.tolist(),tires.Tire.tolist(),gliders.Glider.tolist()]
 allnames = list(it.product(*namelist))
-
 statlist = [drivers.drop("Driver",axis=1).values.tolist(),
             bodies.drop("Body",axis=1).values.tolist(),
             tires.drop("Tire",axis=1).values.tolist(),
             gliders.drop("Glider",axis=1).values.tolist()]
 allstats = list(it.product(*statlist))
 allstats = [[sum(x) for x in zip(i[0],i[1],i[2],i[3])] for i in allstats]
-
 nametable = pd.DataFrame(allnames, columns = ["Driver", "Body", "Tire","Glider"])
 stattable = pd.DataFrame(allstats, columns = ['Weight', 'Acceleration', 'On-Road traction', '(Off-Road) Traction',
                                               'Mini-Turbo', 'Ground Speed', 'Water Speed', 'Anti-Gravity Speed',
@@ -61,6 +58,11 @@ stattable = pd.DataFrame(allstats, columns = ['Weight', 'Acceleration', 'On-Road
 comb = nametable.join(stattable)
 comb["Total"] = comb.sum(axis=1)
 
+# Dash Application
+
+cols = ['Driver', 'Body', 'Tire', 'Glider', 'WG', 'AC', 'ON', 'OF', 'MT', 'SL', 'SW', 'SA', 'SG', 'TL', 'TW', 'TA', 'TG', 'Total']
+app = dash.Dash(__name__,external_stylesheets=[dbc.themes.BOOTSTRAP])
+server = app.server
 
 fig = px.scatter(comb.copy()[["Acceleration","Ground Speed"]].drop_duplicates(), x="Acceleration", y="Ground Speed",
                      hover_data=["Acceleration", "Ground Speed"],
@@ -148,7 +150,7 @@ app.layout = html.Div([
                     width={'size': "auto","offset": -1}),
     
             dbc.Col(html.Div(
-                    dash_table.DataTable(id="table",
+                    dbc.Spinner(dash_table.DataTable(id="table",
                     columns=[{"id": i, "name": j} for i,j  in zip(comb.reset_index().columns[1:],cols)],
                     tooltip_header={i: i for i in comb.reset_index().columns[1:]},
                     data=[], sort_action='custom',
@@ -157,11 +159,11 @@ app.layout = html.Div([
                     row_selectable="single",
                     selected_rows=[],
                     page_current=0,
-                    style_table={'height': 500, 'overflowY': 'scroll', 'overflowX': 'scroll','width': 875},
+                    style_table={'height': 500, 'overflowY': 'scroll', 'overflowX': 'scroll','width': 800},
                     style_data={'whiteSpace': 'normal', 'height': 'auto',},
                     style_cell={'textAlign': 'left'},
                     tooltip_delay=0,
-                    tooltip_duration=None,)
+                    tooltip_duration=None,))
     
     ),width={'size': "auto"},align="center")]),
     
@@ -174,7 +176,7 @@ app.layout = html.Div([
     html.Img(id = 'image_2', width=120, height=77,src=app.get_asset_url("blank.png")),
     html.Img(id = 'image_3', width=120, height=77,src=app.get_asset_url("blank.png")),
     html.Img(id = 'image_4', width=120, height=77,src=app.get_asset_url("blank.png"))],width={'size': 'auto'}),
-            dbc.Col(html.Div(dcc.Graph(id='graph2', figure={}),style={'margin-top': -80}),width={'size': "auto"},align="start")]
+            dbc.Col(html.Div(dcc.Graph(id='graph2', figure={})),width={'size': "auto"},align="start")]
     )
     
 ])
@@ -266,7 +268,14 @@ def select(data,select):
     else:
         return (app.get_asset_url("blank.png"),app.get_asset_url("blank.png"),app.get_asset_url("blank.png"),app.get_asset_url("blank.png"),{})     
                 
-                
+@app.callback(
+    [Output("progress", "value"), Output("progress", "children")],
+    [Input("progress-interval", "n_intervals")],
+)
+def update_progress(n):
+
+    progress = min(n % 110, 100)
+    return progress, f"{progress} %" if progress >= 5 else ""                
     
 import logging
 log = logging.getLogger('werkzeug')
