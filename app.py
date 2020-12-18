@@ -55,7 +55,7 @@ app.layout = html.Div([
     
     dbc.Row(dbc.Col(html.Div(
         dcc.Markdown('''               
-           This application uses data from **Mario Kart 8 Deluxue** to create an interactive graphs, note that the total sum of a particular stat maxes out at 20.
+           This application uses data from **Mario Kart 8 Deluxe** to create an interactive graphs, note that the total sum of a particular stat maxes out at 20.
                      
            How to use:
            
