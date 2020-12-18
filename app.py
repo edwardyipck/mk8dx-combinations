@@ -1,13 +1,11 @@
 import pandas as pd
-import re
 import itertools as it
-
 import dash
 import dash_table
 import plotly.express as px
 import dash_core_components as dcc
 import dash_html_components as html
-from dash.dependencies import Input, Output, State
+from dash.dependencies import Input, Output
 import dash_bootstrap_components as dbc
 
 # Creating the dataframe
@@ -17,40 +15,15 @@ bodies = pd.read_csv("assets/data/bodies.csv")
 tires = pd.read_csv("assets/data/tires.csv")
 gliders = pd.read_csv("assets/data/gliders.csv")
 
-stats = {"WG": "Weight",
-         "AC": "Acceleration",
-         "ON": "On-Road traction",
-         "OF": "(Off-Road) Traction",
-         "MT": "Mini-Turbo",
-         "SL": "Ground Speed",
-         "SW": "Water Speed",
-         "SA": "Anti-Gravity Speed",
-         "SG": "Air Speed",
-         "TL": "Ground Handling",
-         "TW": "Water Handling",
-         "TA": "Anti-Gravity Handling",
-         "TG": "Air Handling"}
-
-drivers = drivers.rename(columns=stats)
-bodies = bodies.rename(columns=stats)
-gliders = gliders.rename(columns=stats)
-tires = tires.rename(columns=stats)
-
-drivers["Driver"] = drivers["Driver"].apply(lambda x: re.findall('^.*\S', x)[0])
-bodies["Body"] = bodies["Body"].apply(lambda x: re.findall('^.*\S', x)[0])
-tires["Tire"] = tires["Tire"].apply(lambda x: re.findall('^.*\S', x)[0])
-gliders["Glider"] = gliders["Glider"].apply(lambda x: re.findall('^.*\S', x)[0])
-tires["Tire"] = tires["Tire"].apply(lambda x : str(x) + " Tires" if "Tires" not in x else x)
-
-namelist = [drivers.Driver.tolist(),bodies.Body.tolist(),tires.Tire.tolist(),gliders.Glider.tolist()]
+namelist = [drivers.Driver.tolist(),bodies.Body.tolist(),tires.Tires.tolist(),gliders.Glider.tolist()]
 allnames = list(it.product(*namelist))
 statlist = [drivers.drop("Driver",axis=1).values.tolist(),
             bodies.drop("Body",axis=1).values.tolist(),
-            tires.drop("Tire",axis=1).values.tolist(),
+            tires.drop("Tires",axis=1).values.tolist(),
             gliders.drop("Glider",axis=1).values.tolist()]
 allstats = list(it.product(*statlist))
 allstats = [[sum(x) for x in zip(i[0],i[1],i[2],i[3])] for i in allstats]
-nametable = pd.DataFrame(allnames, columns = ["Driver", "Body", "Tire","Glider"])
+nametable = pd.DataFrame(allnames, columns = ["Driver", "Body", "Tires","Glider"])
 stattable = pd.DataFrame(allstats, columns = ['Weight', 'Acceleration', 'On-Road traction', '(Off-Road) Traction',
                                               'Mini-Turbo', 'Ground Speed', 'Water Speed', 'Anti-Gravity Speed',
                                               'Air Speed', 'Ground Handling', 'Water Handling',
@@ -60,7 +33,7 @@ comb["Total"] = comb.sum(axis=1)
 
 # Dash Application
 
-cols = ['Driver', 'Body', 'Tire', 'Glider', 'WG', 'AC', 'ON', 'OF', 'MT', 'SL', 'SW', 'SA', 'SG', 'TL', 'TW', 'TA', 'TG', 'Total']
+cols = ['Driver', 'Body', 'Tires', 'Glider', 'WG', 'AC', 'ON', 'OF', 'MT', 'SL', 'SW', 'SA', 'SG', 'TL', 'TW', 'TA', 'TG', 'Total']
 app = dash.Dash(__name__,external_stylesheets=[dbc.themes.BOOTSTRAP])
 server = app.server
 
@@ -76,13 +49,14 @@ fig.update_traces(marker_size=17)
 
 
 app.layout = html.Div([
-    dbc.Row(dbc.Col(html.H3("Mario Kart Combination Selector",style={'margin-top':15}),
+    dbc.Row(dbc.Col(html.H3("Mario Kart 8 Deluxe Combination Selector",style={'margin-top':15}),
                     width={'size': "auto"}),
             justify="center"),
     
     dbc.Row(dbc.Col(html.Div(
         dcc.Markdown('''               
-                
+           This application uses data from **Mario Kart 8 Deluxue**, note that the total sum of a particular stat maxes out at 20.
+                     
            How to use:
                      
            1. Select the categories for the x and y axis of the graph from the dropdowns
@@ -92,8 +66,21 @@ app.layout = html.Div([
            ''')
         ,style={'margin-left': 80}))),
     
-    dbc.Row([
-            dbc.Col(html.Div("Select y-axis:",style={'margin-left': 80}),
+    dbc.Row([dbc.Col(html.Div("Select driver:",style={'margin-left': 80}),
+                    width={'size': 'auto'}
+                    ),
+             
+            dbc.Col(html.Div(
+                    dcc.Dropdown(id="slct_driver",
+                        options=[{"label": i, "value": i} for i in drivers["Driver"].to_list()],
+                        multi=True,
+                        clearable=False,
+                        placeholder="All Drivers",),
+                        style={"width": "250px",'margin-left': -20}),
+                    width={'size': "auto"}
+                    ),
+            
+            dbc.Col(html.Div("Select y-axis:",style={'margin-left': -10}),
                     width={'size': 'auto'}
                     ),
              
@@ -101,11 +88,12 @@ app.layout = html.Div([
                     dcc.Dropdown(id="slct_y",
                         options=[{"label": i, "value": i} for i in comb.columns][4:-1],
                         multi=False, value="Acceleration",
-                        clearable=False)),
-                    width={'size': 2}
+                        clearable=False),
+                        style={"width": "200px",'margin-left': -20}),
+                    width={'size': "auto"}
                     ),
             
-            dbc.Col(html.Div("Select x-axis:",style={'margin-left': 80}),
+            dbc.Col(html.Div("Select x-axis:",style={'margin-left': -10}),
                     width={'size': 'auto'}
                     ),
                         
@@ -113,11 +101,12 @@ app.layout = html.Div([
                     dcc.Dropdown(id="slct_x",
                         options=[{"label": i, "value": i} for i in comb.columns][4:-1],
                         multi=False, value="Ground Speed",
-                        clearable=False)),
-                    width={'size': 2}
+                        clearable=False),
+                        style={"width": "200px",'margin-left': -20}),
+                    width={'size': "auto"}
                     ),
             
-            dbc.Col(html.Div("Select slider:",style={'margin-left': 80}),
+            dbc.Col(html.Div("Select slider:",style={'margin-left': -10}),
                     width={'size': 'auto'}
                     ),
             
@@ -125,8 +114,9 @@ app.layout = html.Div([
                     dcc.Dropdown(id="slct_s",
                         options=[{"label": i, "value": i} for i in comb.columns][4:-1],
                         multi=False, value="Mini-Turbo",
-                        clearable=False)),
-                    width={'size': 2}
+                        clearable=False),
+                        style={"width": "200px",'margin-left': -20}),
+                    width={'size': "auto"}
                     )
             ]
         ),
@@ -190,14 +180,17 @@ app.layout = html.Div([
     Input('slct_x', 'value'),
     Input('slct_s', 'value'),
     Input('slider', 'value'),
+    Input('slct_driver', 'value'),
     Input('table', 'sort_by'))
     
-def update_table(clickData,ycol,xcol,scol,sval,sortby):
+def update_table(clickData,ycol,xcol,scol,sval,driver,sortby):
 
     if all(i != None for i in [clickData,ycol,xcol,scol]) and len(set([ycol,xcol,scol])) ==3:
         yval = int(clickData['points'][0]['y'])
         xval = int(clickData['points'][0]['x'])
         data = comb[(comb[ycol] == yval) & (comb[xcol] == xval) & (comb[scol].between(sval[0],sval[1]))]
+        if driver!=None and driver != []:
+            data=data[data["Driver"].isin(driver)]
         if len(sortby):
             for i in sortby:
                 data = data.sort_values([col['column_id'] for col in sortby],
@@ -211,14 +204,20 @@ def update_table(clickData,ycol,xcol,scol,sval,sortby):
     
 @app.callback(
     Output('graph', 'figure'),
+    Output('graph', 'clickData'),
     Input('slct_y', 'value'),
     Input('slct_x', 'value'),
     Input('slct_s', 'value'),
-    Input('slider', 'value'))
+    Input('slider', 'value'),
+    Input('slct_driver', 'value'))
 
-def update_graph(ycol,xcol,scol,sval):
+def update_graph(ycol,xcol,scol,sval,driver):
     if all(i != None for i in [ycol,xcol,scol]) and len(set([ycol,xcol,scol])) ==3:
-        data = comb.copy()[[ycol,xcol,scol]].drop_duplicates()
+        if driver!=None and driver != []:
+            data=comb[comb["Driver"].isin(driver)].copy()
+        else:
+            data=comb.copy()
+        data = data[[ycol,xcol,scol]].drop_duplicates()
         data = data[data[scol].between(sval[0],sval[1])]
         fig = px.scatter(data, x=xcol, y=ycol,color = scol, range_color=[0,20],
                          hover_data=[ycol, xcol,scol],
@@ -230,9 +229,9 @@ def update_graph(ycol,xcol,scol,sval):
         fig.layout.xaxis.fixedrange = True
         fig.layout.yaxis.fixedrange = True
         fig.update_traces(marker_size=17)
-        return fig
+        return fig, None
     else:
-        return {}
+        return {}, None
     
 @app.callback(
     Output('image_1','src'),
@@ -247,7 +246,7 @@ def select(data,select):
     if data != [] and select !=[] and data != None and select !=None:
         driver = str(data[select[0]]['Driver']).replace(" ","_").lower()
         body = str(data[select[0]]['Body']).replace(" ","_").lower()
-        tires = str(data[select[0]]['Tire']).replace(" ","_").lower()
+        tires = str(data[select[0]]['Tires']).replace(" ","_").lower()
         glider = str(data[select[0]]['Glider']).replace(" ","_").lower()
         
         fig = px.bar(
@@ -266,16 +265,7 @@ def select(data,select):
 
         return (app.get_asset_url('driver/'+driver+'.png'), app.get_asset_url('body/'+body+'.png'), app.get_asset_url('tires/'+tires+'.png'), app.get_asset_url('glider/'+glider+'.png'),fig)
     else:
-        return (app.get_asset_url("blank.png"),app.get_asset_url("blank.png"),app.get_asset_url("blank.png"),app.get_asset_url("blank.png"),{})     
-                
-@app.callback(
-    [Output("progress", "value"), Output("progress", "children")],
-    [Input("progress-interval", "n_intervals")],
-)
-def update_progress(n):
-
-    progress = min(n % 110, 100)
-    return progress, f"{progress} %" if progress >= 5 else ""                
+        return (app.get_asset_url("blank.png"),app.get_asset_url("blank.png"),app.get_asset_url("blank.png"),app.get_asset_url("blank.png"),{})          
     
 import logging
 log = logging.getLogger('werkzeug')
