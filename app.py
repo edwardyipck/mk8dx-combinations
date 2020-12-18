@@ -55,14 +55,15 @@ app.layout = html.Div([
     
     dbc.Row(dbc.Col(html.Div(
         dcc.Markdown('''               
-           This application uses data from **Mario Kart 8 Deluxue**, note that the total sum of a particular stat maxes out at 20.
+           This application uses data from **Mario Kart 8 Deluxue** to create an interactive graphs, note that the total sum of a particular stat maxes out at 20.
                      
            How to use:
-                     
-           1. Select the categories for the x and y axis of the graph from the dropdowns
-           2. Select the slider dropdown, and adjust the slider to your liking
-           3. Click on a point on the graph to see the list of combinations in the table on the right
-           4. Click the arrows on any column to sort by a specific category, and click on the dot on the left of the table to see your choice in detail
+           
+           1. Select the driver you want on the dropdown, you can select multiple drivers. Leave it empty to select all drivers.
+           2. Select the categories for the x and y axis of the graph from the dropdowns
+           3. Select the category for the slider dropdown, and adjust the slider to your liking
+           4. Click on a point on the graph to see the list of combinations in the table on the right
+           5. Click the arrows on any column to sort by a specific category, and click on the dot on the left of the table to see your choice in detail
            ''')
         ,style={'margin-left': 80}))),
     
