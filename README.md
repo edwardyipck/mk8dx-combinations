@@ -5,4 +5,4 @@ It allows you to create interactive graphs on the different stat combinations in
 The data was pulled from https://www.mariowiki.com/Mario_Kart_8_Deluxe_in-game_statistics <br> 
 The combinations are calculated using itertools in the dataframe.py file
 
-https://mario-kart-combinations.herokuapp.com/
+https://mk8dx-combinations.herokuapp.com/
