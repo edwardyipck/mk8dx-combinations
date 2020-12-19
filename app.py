@@ -6,7 +6,6 @@ import dash_html_components as html
 from dash.dependencies import Input, Output
 import dash_bootstrap_components as dbc
 
-
 import dataframe
 
 comb, driver_list = dataframe.dataframe()
@@ -241,13 +240,9 @@ def select(data,select):
         fig.layout.xaxis.fixedrange = True
         fig.layout.yaxis.fixedrange = True
 
-        return (app.get_asset_url('driver/'+driver+'.png'), app.get_asset_url('body/'+body+'.png'), app.get_asset_url('tires/'+tires+'.png'), app.get_asset_url('glider/'+glider+'.png'),fig)
+        return (app.get_asset_url('driver/%s.png' % driver), app.get_asset_url('body/%s.png' % body), app.get_asset_url('tires/%s.png' % tires), app.get_asset_url('glider/%s.png' % glider),fig)
     else:
         return (app.get_asset_url("blank.png"),app.get_asset_url("blank.png"),app.get_asset_url("blank.png"),app.get_asset_url("blank.png"),{})          
-    
-import logging
-log = logging.getLogger('werkzeug')
-log.setLevel(logging.ERROR)
 
 if __name__ == '__main__':
     app.run_server(debug=False)
