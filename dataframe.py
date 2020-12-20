@@ -3,7 +3,7 @@ import itertools as it
 
 def dataframe():
     datatypes = {0: 'object'}
-    datatypes.update({i:'uint8' for i in range(1,14)})
+    datatypes.update({i:'int8' for i in range(1,14)})
     
     drivers = pd.read_csv("assets/data/drivers.csv",dtype=datatypes)
     bodies = pd.read_csv("assets/data/bodies.csv",dtype=datatypes)
@@ -38,4 +38,3 @@ def dataframe():
     namelist["Total"] = namelist.sum(axis=1).astype('uint8')
     
     return namelist, driver_list
-
