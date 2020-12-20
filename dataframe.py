@@ -32,7 +32,7 @@ def dataframe():
     statlist = pd.DataFrame(statlist, columns = ['Weight', 'Acceleration', 'On-Road traction', '(Off-Road) Traction',
                                                   'Mini-Turbo', 'Ground Speed', 'Water Speed', 'Anti-Gravity Speed',
                                                   'Air Speed', 'Ground Handling', 'Water Handling',
-                                                  'Anti-Gravity Handling', 'Air Handling'],dtype='uint8')
+                                                  'Anti-Gravity Handling', 'Air Handling'],dtype='int8')
     
     namelist = namelist.join(statlist)
     namelist["Total"] = namelist.sum(axis=1).astype('uint8')
